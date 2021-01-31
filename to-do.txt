@@ -1,0 +1,14 @@
+JS:
+password field visible button
+
+AJAX:
+Search within blogs
+
+MASHUP (API):
+Sign in with google
+
+JQUERY:
+Blog collapse animation
+
+JSON:
+Store posts in JSON format
