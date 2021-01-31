@@ -32,8 +32,8 @@
                     {% endif %}
                 </div>
                 <div class="form-check">
-                    {{ form.remember(class="form-check-input") }}
-                    {{ form.remember.label(class="form-check-label") }}
+                    {{ form.show_password(class="form-check-input") }}
+                    {{ form.show_password.label(class="form-check-label") }}
                 </div>
             </fieldset>
             <div class="form-group">
@@ -49,4 +49,17 @@
             Need An Account? <a class="ml-2" href="{{ url_for('register') }}">Sign Up Now</a>
         </small>
     </div>
+    <script type="text/javascript">
+        window.addEventListener("load", function(){
+            var checkbox  = document.getElementById('{{form.show_password.id}}');
+            var x = document.getElementById('{{form.password.id}}');
+            checkbox.addEventListener('change', function() {
+                if(this.checked) {
+                    x.type = 'text'; 
+                } else {
+                    x.type = 'password'; 
+                }
+            });
+        });
+    </script>
 {% endblock content %}
