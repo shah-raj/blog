@@ -4,6 +4,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_mail import Mail
+from urllib.request import Request, urlopen, URLError
+from urllib.parse import urlparse
+from flask_oauth import OAuth
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
@@ -21,5 +25,23 @@ app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = 'shahraj0299@gmail.com'
 app.config['MAIL_PASSWORD'] = 'zhsndsqvihcpewaq'
 mail = Mail(app)
+
+
+
+GOOGLE_CLIENT_ID = '517233664391-ktt2qhaaujr9go5trld3rblnd1t9t7lc.apps.googleusercontent.com'
+GOOGLE_CLIENT_SECRET = 'EUobNJSxxdIw4lTNCqVxodWQ'
+REDIRECT_URI = '/oauth2callback'  # one of the Redirect URIs from Google APIs console
+oauth = OAuth()
+
+google = oauth.remote_app('google',
+base_url='https://www.google.com/accounts/',
+authorize_url='https://accounts.google.com/o/oauth2/auth',
+request_token_url=None,
+request_token_params={'scope': 'https://www.googleapis.com/auth/userinfo.email','response_type': 'code'},
+access_token_url='https://accounts.google.com/o/oauth2/token',
+access_token_method='POST',
+access_token_params={'grant_type': 'authorization_code'},
+consumer_key=GOOGLE_CLIENT_ID,
+consumer_secret=GOOGLE_CLIENT_SECRET)
 
 from flaskblog import routes

@@ -1,14 +1,16 @@
 import os
 import secrets
 from PIL import Image
-from flask import render_template, url_for, flash, redirect, request, abort, jsonify
-from flaskblog import app, db, bcrypt, mail
+from flask import render_template, url_for, flash, redirect, request, abort, jsonify, Flask, session
+from flaskblog import app, db, bcrypt, mail, google, REDIRECT_URI
 from flaskblog.forms import (RegistrationForm, LoginForm, UpdateAccountForm,
                              PostForm, RequestResetForm, ResetPasswordForm, SearchForm)
 from flaskblog.models import User, Post
 from flask_login import login_user, current_user, logout_user, login_required
 from flask_mail import Message
-
+from urllib.request import Request, urlopen, URLError
+from urllib.parse import urlparse
+import json
 
 @app.route("/")
 @app.route("/home", methods=['GET', 'POST'])
@@ -44,6 +46,32 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('home'))
     form = LoginForm()
+    if form.google.data:
+        access_token = session.get('access_token')
+        if access_token is None:
+            return redirect(url_for('googleLogin'))
+
+        access_token = access_token[0]
+
+        headers = {'Authorization': 'OAuth '+access_token}
+        req = Request('https://www.googleapis.com/oauth2/v1/userinfo',None, headers)
+        try:
+            res = urlopen(req)
+        except URLError as e:
+            if e.code == 401:
+            # Unauthorized - bad token
+                session.pop('access_token', None)
+                return redirect(url_for('googleLogin'))
+            res.read()
+            
+
+        output = res.read().decode('utf-8')
+        json_obj = json.loads(output)
+        user = User.query.filter_by(email=json_obj['email']).first()
+        login_user(user, remember=form.remember.data)
+        next_page = request.args.get('next')
+        return redirect(next_page) if next_page else redirect(url_for('home'))
+
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
@@ -53,6 +81,24 @@ def login():
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
+
+@app.route('/googleLogin')
+def googleLogin():
+    callback=url_for('authorized', _external=True)
+    return google.authorize(callback=callback)
+
+@app.route(REDIRECT_URI)
+@google.authorized_handler
+def authorized(resp):
+    access_token = resp['access_token']
+    session['access_token'] = access_token, ''
+    print(access_token)
+    return redirect(url_for('home'))
+
+@google.tokengetter
+def get_access_token():
+    return session.get('access_token')
+
 
 
 @app.route("/logout")

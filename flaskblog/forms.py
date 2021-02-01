@@ -34,6 +34,7 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()],id='password')
     remember = BooleanField('Remember Me')
     show_password = BooleanField('Show password', id='show_password')
+    google = SubmitField('Sign in with Google')
     submit = SubmitField('Login')
 
 
