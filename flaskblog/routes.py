@@ -1,21 +1,22 @@
 import os
 import secrets
 from PIL import Image
-from flask import render_template, url_for, flash, redirect, request, abort
+from flask import render_template, url_for, flash, redirect, request, abort, jsonify
 from flaskblog import app, db, bcrypt, mail
 from flaskblog.forms import (RegistrationForm, LoginForm, UpdateAccountForm,
-                             PostForm, RequestResetForm, ResetPasswordForm)
+                             PostForm, RequestResetForm, ResetPasswordForm, SearchForm)
 from flaskblog.models import User, Post
 from flask_login import login_user, current_user, logout_user, login_required
 from flask_mail import Message
 
 
 @app.route("/")
-@app.route("/home")
+@app.route("/home", methods=['GET', 'POST'])
 def home():
     page = request.args.get('page', 1, type=int)
     posts = Post.query.order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
-    return render_template('home.html', posts=posts)
+    form = SearchForm(request.form)
+    return render_template('home.html', posts=posts, form=form)
 
 
 @app.route("/about")
@@ -199,3 +200,19 @@ def reset_token(token):
         flash('Your password has been updated! You are now able to log in', 'success')
         return redirect(url_for('login'))
     return render_template('reset_token.html', title='Reset Password', form=form)
+
+ 
+@app.route("/posts")
+def postdic():
+    res = Post.query.all()
+    list_posts = [r.as_dict() for r in res]
+    return jsonify(list_posts)
+  
+@app.route("/process", methods=['GET','POST'])
+def process():
+    post = request.form['post']
+    post = Post.query.filter_by(title=str(post)).first()
+    print(post)
+    if post:
+        return 'post/' + str(post.id)
+    return jsonify({'error': 'missing data..'})
