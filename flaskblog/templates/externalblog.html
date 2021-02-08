@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block content %}
+<div id = "posts" onload="loadXMLDoc()"></div>
+<script type="text/javascript">
+	document.onload = loadXMLDoc();
+	function loadXMLDoc() {
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.onreadystatechange = function() {
+	    if (this.readyState == 4 && this.status == 200) {
+	    	myFunction1(this);
+	    }
+	  };
+
+	xmlhttp.open("GET", "https://www.thehindu.com/sci-tech/science/feeder/default.rss", true);
+	xmlhttp.send();
+	}
+	function myFunction1(xml) {
+		var i;
+		var xmlDoc = xml.responseXML;
+		var article= ''
+		var x = xmlDoc.getElementsByTagName("item");
+
+		for (i = 0; i <20; i++) { 
+			article += '<article class="media content-section"><div class="media-body"><h2><a class="article-title" href=' +  
+			x[i].getElementsByTagName("link")[0].childNodes[0].nodeValue + 
+			">" + 
+			x[i].getElementsByTagName("title")[0].childNodes[0].nodeValue +
+			'</a></h2><p class="article-content">' +
+			x[i].getElementsByTagName("description")[0].childNodes[0].nodeValue +
+			"</p></div></article>";
+		}
+	  	document.getElementById("posts").innerHTML = article;
+	}
+</script>
+{% endblock content %}

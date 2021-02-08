@@ -25,6 +25,10 @@ def home():
 def about():
     return render_template('about.html', title='About')
 
+@app.route("/externalblog")
+def externalBlog():
+    return render_template('externalblog.html', title='External Blog')
+
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
